@@ -27,9 +27,9 @@ def main():
         resp = authorized_request(
                 url='https://api.spotify.com/v1/me',
                 method='GET')
-    except FileNotFoundError:
+        resp.raise_for_status()
+    except (FileNotFoundError, requests.HTTPError):
         return redirect(url_for('login'))
-    resp.raise_for_status()
     me = resp.json()
 
     resp = authorized_request(
@@ -39,7 +39,6 @@ def main():
     resp = authorized_request(
             url='https://api.spotify.com/v1/me/player/devices',
             method='GET')
-    resp.raise_for_status()
     devices = resp.json()
 
     return devices
@@ -47,7 +46,7 @@ def main():
 @app.route('/login/')
 def login():
     auth_url = 'https://accounts.spotify.com/authorize?client_id={}&response_type=code&redirect_uri={}&scope={}'
-    callback_url = request.url_root + 'callback'
+    callback_url = request.url_root + 'callback/'
     return redirect(auth_url.format(app.config['CLIENT_ID'], callback_url, 'user-read-playback-state user-modify-playback-state'))
 
 @app.route('/callback/')
